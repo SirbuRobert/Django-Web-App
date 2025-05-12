@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Filtru form -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Filtrare Instrumente</h4>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Nume</label>
+                    <input type="text" name="nume" class="form-control" value="{{ request.GET.nume }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Marcă</label>
+                    <select name="marca" class="form-select">
+                        <option value="">Toate mărcile</option>
+                        {% for marca in marci %}
+                            <option value="{{ marca }}" {% if request.GET.marca == marca %}selected{% endif %}>
+                                {{ marca }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Stare</label>
+                    <select name="stare" class="form-select">
+                        <option value="">Toate stările</option>
+                        {% for stare in stari %}
+                            <option value="{{ stare }}" {% if request.GET.stare == stare %}selected{% endif %}>
+                                {{ stare }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Preț minim</label>
+                    <input type="number" name="pret_min" class="form-control" value="{{ request.GET.pret_min }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Preț maxim</label>
+                    <input type="number" name="pret_max" class="form-control" value="{{ request.GET.pret_max }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div>
+                        <button type="submit" class="btn btn-primary me-2">Filtrează</button>
+                        <a href="{% url 'instrument_list' %}" class="btn btn-secondary">Resetează</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de instrumente -->
+    <div class="row">
+        {% for instrument in instrumente %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ instrument.nume }}</h5>
+                    <p class="card-text">
+                        <strong>Marcă:</strong> {{ instrument.marca }}<br>
+                        <strong>Preț:</strong> {{ instrument.pret }} RON<br>
+                        <strong>Stare:</strong> {{ instrument.stare }}<br>
+                        <strong>Stoc disponibil:</strong> 
+                        {% if instrument.stoc_cantitate is not None %}
+                            {% if instrument.stoc_cantitate > 0 %}
+                                <span class="text-success">{{ instrument.stoc_cantitate }} bucăți</span>
+                            {% else %}
+                                <span class="text-danger">Stoc epuizat</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-warning">Indisponibil</span>
+                        {% endif %}
+                    </p>
+                    <p class="card-text"><small class="text-muted">{{ instrument.descriere|truncatewords:30 }}</small></p>
+                </div>
+                <div class="card-footer">
+                    {% if instrument.stoc_cantitate > 0 %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="input-group input-group-sm cart-controls">
+                                <button class="btn btn-outline-secondary" type="button" 
+                                        onclick="document.getElementById('quantity-{{ instrument.id }}').value = Math.max(1, parseInt(document.getElementById('quantity-{{ instrument.id }}').value) - 1)">-</button>
+                                <input type="number" class="form-control text-center cart-quantity-input" 
+                                       value="1" min="1" max="{{ instrument.stoc_cantitate }}"
+                                       id="quantity-{{ instrument.id }}">
+                                <button class="btn btn-outline-secondary" type="button" 
+                                        onclick="document.getElementById('quantity-{{ instrument.id }}').value = Math.min({{ instrument.stoc_cantitate }}, parseInt(document.getElementById('quantity-{{ instrument.id }}').value) + 1)">+</button>
+                            </div>
+                            <button class="btn btn-success" onclick="cartManager.addToCart(
+                                '{{ instrument.id }}', 
+                                'instrument', 
+                                parseInt(document.getElementById('quantity-{{ instrument.id }}').value)
+                            )">
+                                Adaugă în coș
+                            </button>
+                        </div>
+                    {% else %}
+                        <button class="btn btn-secondary w-100" disabled>Stoc epuizat</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginare -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% for key,value in current_filters.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Prima</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in current_filters.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Anterior</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">Pagina {{ page_obj.number }} din {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in current_filters.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Următoarea</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in current_filters.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Ultima</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
