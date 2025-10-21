@@ -10,9 +10,6 @@ O aplicație web construită cu Django — un proiect simplu de magazin/producte
 - [Instalare & configurare locală](#instalare--configurare‑locală)  
 - [Structură proiect](#structură‑proiect)  
 - [Utilizare](#utilizare)  
-- [Contribuții](#contribuții)  
-- [Licență](#licență)  
-- [Contact](#contact)  
 
 ---
 
@@ -93,6 +90,3 @@ Django‑Web‑App/
 - Navighează la pagina magazinului pentru a vedea lista de albume.  
 - Autentifică‑te în panoul admin pentru a adăuga/edita/elimina produse.  
 - Poţi adapta aplicaţia la alte tipuri de produse sau extinde funcţionalităţile: filtrare, căutare, coş de cumpărături etc.
-
-
-*Acest README a fost generat automat şi poate fi personalizat după nevoi.*
